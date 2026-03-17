@@ -21,4 +21,12 @@ public class UserClient {
                 .body(user)
                 .post(RestApi.LOGIN_PATH);
     }
+
+    public Response delete(String accessToken) {
+
+        return given()
+                .header("Authorization", accessToken)
+                .delete(RestApi.USER_PATH);
+
+    }
 }
