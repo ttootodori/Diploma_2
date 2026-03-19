@@ -1,9 +1,8 @@
 package org.example.tests;
 
-import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import static io.restassured.RestAssured.*;
+import io.qameta.allure.Description;
 
 import org.example.RestApi;
 import org.example.steps.UserSteps;
@@ -13,8 +12,6 @@ import org.example.model.Order;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.Before;
-
-import java.util.List;
 
 public class OrderTests {
 
@@ -37,6 +34,7 @@ public class OrderTests {
     }
 
     @Test
+    @Description("Проверка оформления заказа с авторизацией.")
     public void placeOrderWithAuth() {
         User user = userSteps.createRandomUser();
         Response response = userSteps.createUser(user);
@@ -49,6 +47,7 @@ public class OrderTests {
     }
 
     @Test
+    @Description("Проверка оформления заказа без авторизации.")
     public void placeOrderWithoutAuth() {
 
         Order order = new Order(orderSteps.getValidIngredients());
@@ -57,11 +56,18 @@ public class OrderTests {
     }
 
     @Test
+    @Description("Проверка, что при попытке создать заказ с невалидным хэшем, вернётся ошибка.")
     public void placeOrderWithInvalidIngredientHash() {
 
+        User user = userSteps.createRandomUser();
+        Response response = userSteps.createUser(user);
+        userSteps.verifyUserCreation(response);
+        accessToken = response.path("accessToken");
+
         Order order = new Order(orderSteps.getInvalidIngredients());
-        Response response = orderSteps.placeOrderNoAuth(order);
-        orderSteps.verifyOrderPlacementWithInvalidHash(response);
+        Response response1 = orderSteps.placeOrder(order, accessToken);
+        orderSteps.verifyOrderPlacementWithInvalidHash(response1);
+
     }
 
 }

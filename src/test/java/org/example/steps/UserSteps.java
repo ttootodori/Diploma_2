@@ -65,8 +65,6 @@ public class UserSteps {
 
     }
 
-
-
     @Step
     public String getAccessToken() { return accessToken; }
 

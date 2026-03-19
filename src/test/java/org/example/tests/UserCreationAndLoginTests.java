@@ -3,7 +3,6 @@ package org.example.tests;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
-import static io.restassured.RestAssured.*;
 
 import org.example.RestApi;
 import org.example.steps.UserSteps;

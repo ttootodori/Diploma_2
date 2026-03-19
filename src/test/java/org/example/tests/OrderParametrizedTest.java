@@ -1,16 +1,18 @@
 package org.example.tests;
 
-import io.qameta.allure.restassured.AllureRestAssured;
+import io.qameta.allure.Description;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.example.RestApi;
 import org.example.model.Order;
+import org.example.model.User;
 import org.example.steps.OrderSteps;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
+import org.example.steps.UserSteps;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ import java.util.List;
 public class OrderParametrizedTest {
 
     private OrderSteps orderSteps;
+    private UserSteps userSteps;
 
     private final List<String> ingredients;
     private final int expectedStatus;
@@ -44,20 +47,25 @@ public class OrderParametrizedTest {
     @Before
     public void setUp() {
         RestAssured.baseURI = RestApi.BASE_URL;
+        userSteps = new UserSteps();
         orderSteps = new OrderSteps();
     }
 
     @Test
+    @Description("Проверка оформления заказа с разным количеством ингредиентов.")
     public void placeOrderWithDifferentIngredientsTest() {
-        Order order = new Order(ingredients);
 
-        // Все запросы без токена — авторизация не требуется
-        Response response = orderSteps.placeOrderNoAuth(order);
+        User user = userSteps.createRandomUser();
+        Response response = userSteps.createUser(user);
+        userSteps.verifyUserCreation(response);
+
+        Order order = new Order(ingredients);
+        Response response1 = orderSteps.placeOrder(order, userSteps.getAccessToken());
 
         if (expectedStatus == 200) {
-            orderSteps.verifySuccessfulOrderPlacement(response);
+            orderSteps.verifySuccessfulOrderPlacement(response1);
         } else {
-            orderSteps.verifyOrderPlacementWithoutIngredients(response);
+            orderSteps.verifyOrderPlacementWithoutIngredients(response1);
         }
     }
 }
