@@ -40,7 +40,7 @@ public class UserSteps {
         assertEquals(false, response.path("success"));
     }
 
-    @Step("Проверка успешного логина для пользователя {user.email}")
+    @Step("Проверка успешного логина для пользователя.")
     public void verifyLoginSuccess(Response response, User user) {
         assertEquals(200, response.statusCode());
         assertEquals(true, response.path("success"));
@@ -57,9 +57,8 @@ public class UserSteps {
         assertEquals("email or password are incorrect", response.path("message"));
     }
 
-    @Step("Удаление пользователя с токеном {accessToken}")
+    @Step("Удаление пользователя с токеном.")
     public void deleteUser(String accessToken) {
-
         Response response = userClient.delete(accessToken);
         assertEquals(202, response.statusCode());
 
