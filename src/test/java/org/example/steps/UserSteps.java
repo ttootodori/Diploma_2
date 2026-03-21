@@ -5,6 +5,7 @@ import org.example.client.UserClient;
 import org.example.model.User;
 import io.restassured.response.Response;
 import static org.junit.Assert.*;
+import static org.apache.http.HttpStatus.*;
 
 public class UserSteps {
 
@@ -28,7 +29,7 @@ public class UserSteps {
 
     @Step("Проверка успешного создания пользователя")
     public void verifyUserCreation(Response response) {
-        assertEquals(200, response.statusCode());
+        assertEquals(SC_OK, response.statusCode());              // 200
         assertEquals(true, response.path("success"));
         assertNotNull(response.path("accessToken"));
         accessToken = response.path("accessToken");
@@ -36,13 +37,13 @@ public class UserSteps {
 
     @Step("Проверка ошибки при создании существующего пользователя")
     public void verifyUserCreationError(Response response) {
-        assertEquals(403, response.statusCode());
+        assertEquals(SC_FORBIDDEN, response.statusCode());       // 403
         assertEquals(false, response.path("success"));
     }
 
     @Step("Проверка успешного логина для пользователя.")
     public void verifyLoginSuccess(Response response, User user) {
-        assertEquals(200, response.statusCode());
+        assertEquals(SC_OK, response.statusCode());              // 200
         assertEquals(true, response.path("success"));
         assertNotNull(response.path("accessToken"));
         assertNotNull(response.path("refreshToken"));
@@ -52,7 +53,7 @@ public class UserSteps {
 
     @Step("Проверка ошибки логина с неверными данными")
     public void verifyLoginFailed(Response response) {
-        assertEquals(401, response.statusCode());
+        assertEquals(SC_UNAUTHORIZED, response.statusCode());    // 401
         assertEquals(false, response.path("success"));
         assertEquals("email or password are incorrect", response.path("message"));
     }
@@ -60,11 +61,11 @@ public class UserSteps {
     @Step("Удаление пользователя с токеном.")
     public void deleteUser(String accessToken) {
         Response response = userClient.delete(accessToken);
-        assertEquals(202, response.statusCode());
-
+        assertEquals(SC_ACCEPTED, response.statusCode());        // 202
     }
 
-    @Step
-    public String getAccessToken() { return accessToken; }
-
+    @Step("Извлечение токена авторизации из ответа сервера")
+    public String getAccessToken() {
+        return accessToken;
+    }
 }

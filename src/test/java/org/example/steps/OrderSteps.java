@@ -2,10 +2,9 @@ package org.example.steps;
 
 import io.qameta.allure.Step;
 import org.example.client.OrderClient;
-import org.example.client.UserClient;
 import org.example.model.Order;
 import io.restassured.response.Response;
-import org.example.model.User;
+import static org.apache.http.HttpStatus.*;
 
 import java.util.*;
 
@@ -46,20 +45,20 @@ public class OrderSteps {
 
     @Step("Проверка успешности создания заказа")
     public void verifySuccessfulOrderPlacement(Response response) {
-        assertEquals(200, response.statusCode());
+        assertEquals(SC_OK, response.statusCode());
         assertEquals(true, response.path("success"));
     }
 
     @Step("Проверка ошибки при создании заказа без ингредиентов")
     public void verifyOrderPlacementWithoutIngredients(Response response) {
-        assertEquals(400, response.statusCode());
+        assertEquals(SC_BAD_REQUEST, response.statusCode());
         assertEquals(false, response.path("success"));
         assertEquals("Ingredient ids must be provided", response.path("message"));
     }
 
     @Step("Проверка ошибки при создании заказа с неверным хешем")
     public void verifyOrderPlacementWithInvalidHash(Response response) {
-        assertEquals(500, response.statusCode());  //по документации
+        assertEquals(SC_INTERNAL_SERVER_ERROR, response.statusCode());  //по документации
     }
 
     @Step("Создать список только с булкой")

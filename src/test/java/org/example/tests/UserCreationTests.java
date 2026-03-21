@@ -1,5 +1,6 @@
 package org.example.tests;
 
+import io.qameta.allure.Description;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -31,6 +32,7 @@ public class UserCreationTests {
     }
 
     @Test
+    @Description("Создание уникального пользователя. Проверка успешной регистрации: статус 200, success: true, наличие accessToken.")
     public void createUniqueUserTest() {
         User user = userSteps.createRandomUser();
         Response response = userSteps.createUser(user);
@@ -39,6 +41,7 @@ public class UserCreationTests {
     }
 
     @Test
+    @Description("Создание уже существующего пользователя. Проверка ошибки: статус 403, success: false.")
     public void createExistingUserTest() {
         User user = userSteps.createRandomUser();
         Response firstResponse = userSteps.createUser(user);
@@ -47,5 +50,4 @@ public class UserCreationTests {
         Response secondResponse = userSteps.createUser(user);
         userSteps.verifyUserCreationError(secondResponse);
     }
-
 }

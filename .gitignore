@@ -41,7 +41,6 @@ build/
 .DS_Store
 
 ### Allure ###
-allure-results/
 allure-report/
 .allure/
 
@@ -59,8 +58,6 @@ dictionaries/
 ### OS ###
 Thumbs.db
 
-# Исключение для отчёта Allure
-!target/site/allure-maven-plugin/
 
 FETCH_HEAD
  

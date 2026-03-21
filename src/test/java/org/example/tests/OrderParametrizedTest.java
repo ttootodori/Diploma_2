@@ -7,12 +7,14 @@ import org.example.RestApi;
 import org.example.model.Order;
 import org.example.model.User;
 import org.example.steps.OrderSteps;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.example.steps.UserSteps;
+import static org.apache.http.HttpStatus.*;
 
 import java.util.List;
 
@@ -21,6 +23,7 @@ public class OrderParametrizedTest {
 
     private OrderSteps orderSteps;
     private UserSteps userSteps;
+    String accessToken;
 
     private final List<String> ingredients;
     private final int expectedStatus;
@@ -37,10 +40,10 @@ public class OrderParametrizedTest {
         OrderSteps steps = new OrderSteps();  //временный объект для получения списков
 
         return new Object[][]{
-                {steps.getEmptyIngredients(), 400, "0 ингредиентов (ошибка)"},
-                {steps.getOnlyBun(), 200, "1 ингредиент (только булка)"},
-                {steps.getBunAndSauce(), 200, "2 ингредиента (булка + соус)"},
-                {steps.getValidIngredients(), 200, "3 ингредиента (полный набор)"}
+                {steps.getEmptyIngredients(), SC_BAD_REQUEST, "0 ингредиентов (ошибка)"},
+                {steps.getOnlyBun(), SC_OK, "1 ингредиент (только булка)"},
+                {steps.getBunAndSauce(), SC_OK, "2 ингредиента (булка + соус)"},
+                {steps.getValidIngredients(), SC_OK, "3 ингредиента (полный набор)"}
         };
     }
 
@@ -49,23 +52,32 @@ public class OrderParametrizedTest {
         RestAssured.baseURI = RestApi.BASE_URL;
         userSteps = new UserSteps();
         orderSteps = new OrderSteps();
+        User user = userSteps.createRandomUser();
+        Response userCreationResponse = userSteps.createUser(user);
+        userSteps.verifyUserCreation(userCreationResponse);
+        accessToken = userSteps.getAccessToken();
+    }
+
+    @After
+    public void cleanUp() {
+        if (accessToken != null) {
+            userSteps.deleteUser(accessToken);
+        }
     }
 
     @Test
-    @Description("Проверка оформления заказа с разным количеством ингредиентов.")
+    @Description("Оформление заказа с разным количеством ингредиентов. " +
+            "Проверка успешного создания заказа с 1, 2 и 3 ингредиентами, " +
+            "а также ошибки при заказе без ингредиентов.")
     public void placeOrderWithDifferentIngredientsTest() {
 
-        User user = userSteps.createRandomUser();
-        Response response = userSteps.createUser(user);
-        userSteps.verifyUserCreation(response);
-
         Order order = new Order(ingredients);
-        Response response1 = orderSteps.placeOrder(order, userSteps.getAccessToken());
+        Response orderPlacementResponse = orderSteps.placeOrder(order, userSteps.getAccessToken());
 
-        if (expectedStatus == 200) {
-            orderSteps.verifySuccessfulOrderPlacement(response1);
+        if (expectedStatus == SC_OK) {
+            orderSteps.verifySuccessfulOrderPlacement(orderPlacementResponse);
         } else {
-            orderSteps.verifyOrderPlacementWithoutIngredients(response1);
+            orderSteps.verifyOrderPlacementWithoutIngredients(orderPlacementResponse);
         }
     }
 }

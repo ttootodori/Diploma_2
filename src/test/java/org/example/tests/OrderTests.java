@@ -18,12 +18,17 @@ public class OrderTests {
     UserSteps userSteps;
     OrderSteps orderSteps;
     String accessToken;
+    Response userCreationResponse;
 
     @Before
     public void setUp() {
         RestAssured.baseURI = RestApi.BASE_URL;
         userSteps = new UserSteps();
         orderSteps = new OrderSteps();
+        User user = userSteps.createRandomUser();
+        userCreationResponse = userSteps.createUser(user);
+        userSteps.verifyUserCreation(userCreationResponse);
+        accessToken = userCreationResponse.path("accessToken");
     }
 
     @After
@@ -34,40 +39,30 @@ public class OrderTests {
     }
 
     @Test
-    @Description("Проверка оформления заказа с авторизацией.")
-    public void placeOrderWithAuth() {
-        User user = userSteps.createRandomUser();
-        Response response = userSteps.createUser(user);
-        userSteps.verifyUserCreation(response);
-        accessToken = response.path("accessToken");
+    @Description("Оформление заказа с авторизацией. Проверка успешного создания заказа с валидными ингредиентами.")
+    public void placeOrderWithAuthTest() {
 
         Order order = new Order(orderSteps.getValidIngredients());
-        Response response1 = orderSteps.placeOrder(order, accessToken);
-        orderSteps.verifySuccessfulOrderPlacement(response1);
+        Response orderPlacementResponse = orderSteps.placeOrder(order, accessToken);
+        orderSteps.verifySuccessfulOrderPlacement(orderPlacementResponse);
     }
 
     @Test
-    @Description("Проверка оформления заказа без авторизации.")
-    public void placeOrderWithoutAuth() {
+    @Description("Оформление заказа без авторизации. Проверка успешного создания заказа с валидными ингредиентами.")
+    public void placeOrderWithoutAuthTest() {
 
         Order order = new Order(orderSteps.getValidIngredients());
-        Response response1 = orderSteps.placeOrderNoAuth(order);
-        orderSteps.verifySuccessfulOrderPlacement(response1);
+        Response orderPlacementResponse = orderSteps.placeOrderNoAuth(order);
+        orderSteps.verifySuccessfulOrderPlacement(orderPlacementResponse);
     }
 
     @Test
-    @Description("Проверка, что при попытке создать заказ с невалидным хэшем, вернётся ошибка.")
-    public void placeOrderWithInvalidIngredientHash() {
-
-        User user = userSteps.createRandomUser();
-        Response response = userSteps.createUser(user);
-        userSteps.verifyUserCreation(response);
-        accessToken = response.path("accessToken");
+    @Description("Оформление заказа с невалидным хэшем ингредиентов. Проверка ошибки: ожидается статус 500.")
+    public void placeOrderWithInvalidIngredientHashTest() {
 
         Order order = new Order(orderSteps.getInvalidIngredients());
-        Response response1 = orderSteps.placeOrder(order, accessToken);
-        orderSteps.verifyOrderPlacementWithInvalidHash(response1);
-
+        Response orderPlacementResponse = orderSteps.placeOrder(order, accessToken);
+        orderSteps.verifyOrderPlacementWithInvalidHash(orderPlacementResponse);
     }
 
 }

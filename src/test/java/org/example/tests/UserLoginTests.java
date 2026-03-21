@@ -1,5 +1,6 @@
 package org.example.tests;
 
+import io.qameta.allure.Description;
 import io.qameta.allure.restassured.AllureRestAssured;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
@@ -12,6 +13,7 @@ import org.junit.Test;
 
 public class UserLoginTests {
 
+    User user;
     UserSteps userSteps;
     String accessToken;
 
@@ -20,6 +22,11 @@ public class UserLoginTests {
         RestAssured.baseURI = RestApi.BASE_URL;
         RestAssured.filters(new AllureRestAssured());
         userSteps = new UserSteps();
+
+        user = userSteps.createRandomUser();
+        Response createResponse = userSteps.createUser(user);
+        userSteps.verifyUserCreation(createResponse);
+        accessToken = userSteps.getAccessToken();
     }
     @After
     public void cleanUp() {
@@ -29,33 +36,31 @@ public class UserLoginTests {
     }
 
     @Test
+    @Description("Логин существующего пользователя. Проверка успешного входа: статус 200, успешный ответ, токены в ответе.")
     public void logInExistingUserTest() {
-        User user = userSteps.createRandomUser();
-        Response createResponse = userSteps.createUser(user);
-        userSteps.verifyUserCreation(createResponse);
 
         Response loginResponse = userSteps.loginUser(user);
         userSteps.verifyLoginSuccess(loginResponse, user);
-        accessToken = userSteps.getAccessToken();
+
     }
 
     @Test
+    @Description("Логин с неверным паролем. Проверка ошибки авторизации: статус 401, сообщение о неверном пароле.")
     public void loginExistingUserWithWrongPasswordTest() {
-        User user = userSteps.createRandomUser();
-        Response createResponse = userSteps.createUser(user);
-        userSteps.verifyUserCreation(createResponse);
 
         User userForLogin = new User(user.getEmail(), "0000");
-        Response response = userSteps.loginUser(userForLogin);
-        userSteps.verifyLoginFailed(response);
-        accessToken = userSteps.getAccessToken();
+        Response loginResponse = userSteps.loginUser(userForLogin);
+        userSteps.verifyLoginFailed(loginResponse);
+
     }
 
     @Test
+    @Description("Логин несуществующего пользователя. Проверка ошибки авторизации: статус 401, сообщение о неверных данных.")
     public void loginNonExistingUserTest() {
+
         User userForLogin = new User("0000", "0000");
-        Response response = userSteps.loginUser(userForLogin);
-        userSteps.verifyLoginFailed(response);
+        Response loginResponse = userSteps.loginUser(userForLogin);
+        userSteps.verifyLoginFailed(loginResponse);
     }
 
 }

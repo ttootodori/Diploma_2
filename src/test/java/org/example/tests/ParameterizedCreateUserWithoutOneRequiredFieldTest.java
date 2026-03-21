@@ -1,5 +1,6 @@
 package org.example.tests;
 
+import io.qameta.allure.Description;
 import io.restassured.RestAssured;
 import io.restassured.response.Response;
 import org.example.RestApi;
@@ -9,6 +10,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import static org.apache.http.HttpStatus.*;
 
 import static org.junit.Assert.assertEquals;
 
@@ -30,7 +32,7 @@ public class ParameterizedCreateUserWithoutOneRequiredFieldTest {
         RestAssured.baseURI = RestApi.BASE_URL;
     }
 
-    @Parameterized.Parameters
+    @Parameterized.Parameters(name = "Тест с полями: email={0}, password={1}, name={2}")
     public static Object[][] data() {
         return new Object[][]{
                 {null, "password123", "Vasya"},
@@ -40,11 +42,14 @@ public class ParameterizedCreateUserWithoutOneRequiredFieldTest {
     }
 
     @Test
-    public void createUserWithoutField() {
+    @Description("Создание пользователя с отсутствием одного из обязательных полей (email, password или name). " +
+            "Ожидается статус 403, success: false, сообщение об ошибке.")
+    public void createUserWithoutRequiredFieldTest() {
         User user = new User(email, password, name);
-        Response response = new UserClient().create(user);
+        Response userCreationResponse = new UserClient().create(user);
 
-        assertEquals(403, response.statusCode());
-        assertEquals(false, response.path("success"));
+        assertEquals(SC_FORBIDDEN, userCreationResponse.statusCode());
+        assertEquals(false, userCreationResponse.path("success"));
+        assertEquals("Email, password and name are required fields", userCreationResponse.path("message"));
     }
 }
